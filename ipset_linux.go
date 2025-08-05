@@ -3,7 +3,7 @@ package ipset
 import (
 	"net/netip"
 
-	"github.com/dpapchenkov/ipset/internal/netlink"
+	"github.com/nadoo/ipset/internal/netlink"
 )
 
 var nl *netlink.NetLink
