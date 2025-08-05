@@ -1,3 +1,3 @@
-module github.com/nadoo/ipset
+module github.com/dpapchenkov/ipset
 
 go 1.18

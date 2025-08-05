@@ -3,7 +3,7 @@ package ipset
 import (
 	"net/netip"
 
-	"github.com/nadoo/ipset/internal/netlink"
+	"github.com/dpapchenkov/ipset/internal/netlink"
 )
 
 var nl *netlink.NetLink
@@ -15,7 +15,9 @@ type Option = netlink.Option
 func OptIPv6() Option { return func(opts *netlink.Options) { opts.IPv6 = true } }
 
 // OptTimeout sets `timeout xx` parameter to operations.
-func OptTimeout(timeout uint32) Option { return func(opts *netlink.Options) { opts.Timeout = timeout } }
+func OptTimeout(timeout uint32) Option {
+	return func(opts *netlink.Options) { opts.Timeout = netlink.NullableUint32{Value: timeout, Valid: true} }
+}
 
 func OptExcl() Option { return func(opts *netlink.Options) { opts.Excl = true } }
 
