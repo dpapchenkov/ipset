@@ -69,7 +69,7 @@ type NetLink struct {
 
 // NullableUint32 for Options
 type NullableUint32 struct {
-	Value int
+	Value uint32
 	Valid bool
 }
 
