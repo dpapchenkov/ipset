@@ -25,18 +25,21 @@ const (
 	IPSET_CMD_CREATE  = 2
 	IPSET_CMD_DESTROY = 3
 	IPSET_CMD_FLUSH   = 4
+	IPSET_CMD_RENAME  = 5
+	IPSET_CMD_SWAP    = 6
 	IPSET_CMD_ADD     = 9
 	IPSET_CMD_DEL     = 10
 )
 
 // Attributes at command level.
 const (
-	IPSET_ATTR_PROTOCOL = 1 /* 1: Protocol version */
-	IPSET_ATTR_SETNAME  = 2 /* 2: Name of the set */
-	IPSET_ATTR_TYPENAME = 3 /* 3: Typename */
-	IPSET_ATTR_REVISION = 4 /* 4: Settype revision */
-	IPSET_ATTR_FAMILY   = 5 /* 5: Settype family */
-	IPSET_ATTR_DATA     = 7 /* 7: Nested attributes */
+	IPSET_ATTR_PROTOCOL = 1                   /* 1: Protocol version */
+	IPSET_ATTR_SETNAME  = 2                   /* 2: Name of the set */
+	IPSET_ATTR_TYPENAME = 3                   /* 3: Typename */
+	IPSET_ATTR_SETNAME2 = IPSET_ATTR_TYPENAME /* Setname at rename/swap */
+	IPSET_ATTR_REVISION = 4                   /* 4: Settype revision */
+	IPSET_ATTR_FAMILY   = 5                   /* 5: Settype family */
+	IPSET_ATTR_DATA     = 7                   /* 7: Nested attributes */
 )
 
 // CADT specific attributes.
@@ -164,6 +167,45 @@ func (nl *NetLink) FlushSet(setName string) error {
 	req.AddData(NewNfGenMsg(syscall.AF_INET, 0, 0))
 	req.AddData(NewRtAttr(IPSET_ATTR_PROTOCOL, Uint8Attr(IPSET_PROTOCOL)))
 	req.AddData(NewRtAttr(IPSET_ATTR_SETNAME, ZeroTerminated(setName)))
+
+	return syscall.Sendto(nl.fd, req.Serialize(), 0, &nl.lsa)
+}
+
+// RenameSet renames a ipset.
+func (nl *NetLink) RenameSet(setName, setName2 string) error {
+	if setName == "" {
+		return errors.New("setName must be specified")
+	}
+	if setName2 == "" {
+		return errors.New("setName2 must be specified")
+	}
+	if len(setName2) > IPSET_MAXNAMELEN {
+		return errors.New("ipset: name too long")
+	}
+
+	req := NewNetlinkRequest(IPSET_CMD_RENAME|(NFNL_SUBSYS_IPSET<<8), syscall.NLM_F_REQUEST)
+	req.AddData(NewNfGenMsg(syscall.AF_INET, 0, 0))
+	req.AddData(NewRtAttr(IPSET_ATTR_PROTOCOL, Uint8Attr(IPSET_PROTOCOL)))
+	req.AddData(NewRtAttr(IPSET_ATTR_SETNAME, ZeroTerminated(setName)))
+	req.AddData(NewRtAttr(IPSET_ATTR_SETNAME2, ZeroTerminated(setName2)))
+
+	return syscall.Sendto(nl.fd, req.Serialize(), 0, &nl.lsa)
+}
+
+// SwapSet swaps two ipset.
+func (nl *NetLink) SwapSet(setName, setName2 string) error {
+	if setName == "" {
+		return errors.New("setName must be specified")
+	}
+	if setName2 == "" {
+		return errors.New("setName2 must be specified")
+	}
+
+	req := NewNetlinkRequest(IPSET_CMD_SWAP|(NFNL_SUBSYS_IPSET<<8), syscall.NLM_F_REQUEST)
+	req.AddData(NewNfGenMsg(syscall.AF_INET, 0, 0))
+	req.AddData(NewRtAttr(IPSET_ATTR_PROTOCOL, Uint8Attr(IPSET_PROTOCOL)))
+	req.AddData(NewRtAttr(IPSET_ATTR_SETNAME, ZeroTerminated(setName)))
+	req.AddData(NewRtAttr(IPSET_ATTR_SETNAME2, ZeroTerminated(setName2)))
 
 	return syscall.Sendto(nl.fd, req.Serialize(), 0, &nl.lsa)
 }

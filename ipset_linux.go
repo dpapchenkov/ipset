@@ -42,6 +42,16 @@ func Flush(setName string) (err error) {
 	return nl.FlushSet(setName)
 }
 
+// Rename renames a named set.
+func Rename(setName, setName2 string) (err error) {
+	return nl.RenameSet(setName, setName2)
+}
+
+// Swap swaps two named sets.
+func Swap(setName, setName2 string) (err error) {
+	return nl.SwapSet(setName, setName2)
+}
+
 // Add adds an entry to the named set.
 // entry could be: "1.1.1.1" or "192.168.1.0/24" or "2022::1" or "2022::1/32".
 func Add(setName, entry string, opts ...Option) (err error) {
